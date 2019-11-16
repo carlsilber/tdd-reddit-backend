@@ -2,6 +2,7 @@ package com.carlsilber.tddredditbackend;
 
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
+import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,18 +43,27 @@ public class UserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    @Test
+    public void postUser_whenUserIsValid_userSavedToDatabase() {
+        User user = createValidUser();
+        testRestTemplate.postForEntity(API_1_0_USERS, user, Object.class);
+        assertThat(userRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    public void postUser_whenUserIsValid_recieveSuccessMessage() {
+        User user = createValidUser();
+
+        final ResponseEntity<GenericResponse> response = testRestTemplate.postForEntity(API_1_0_USERS, user, GenericResponse.class);
+
+        assertThat(response.getBody().getMessage()).isNotNull();
+    }
+
     private User createValidUser() {
         User user = new User();
         user.setUsername("test-user");
         user.setDisplayName("test-displau");
         user.setPassword("P4ssword");
         return user;
-    }
-
-    @Test
-    public void postUser_whenUserIsValid_userSavedToDatabase() {
-        User user = createValidUser();
-        testRestTemplate.postForEntity(API_1_0_USERS, user, Object.class);
-        assertThat(userRepository.count()).isEqualTo(1);
     }
 }
