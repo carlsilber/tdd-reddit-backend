@@ -1,5 +1,6 @@
 package com.carlsilber.tddredditbackend.domain;
 
+import com.carlsilber.tddredditbackend.validators.UniqueUsername;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -19,6 +20,7 @@ public class User {
 
     @NotNull(message = "{tddredditbackend.constraints.username.NotNull.message}")
     @Size(min = 4, max=255)
+    @UniqueUsername
     private String username;
 
     @NotNull
