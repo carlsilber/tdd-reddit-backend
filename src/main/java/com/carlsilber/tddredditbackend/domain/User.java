@@ -2,6 +2,9 @@ package com.carlsilber.tddredditbackend.domain;
 
 import com.carlsilber.tddredditbackend.validators.UniqueUsername;
 import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,10 +12,14 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.beans.Transient;
+import java.util.Collection;
 
 @Data
 @Entity
-public class User {
+public class User implements UserDetails {
+
+    private static final long serialVersionUID = 4074374728582967483L;
 
     @Id
     @GeneratedValue
@@ -31,5 +38,35 @@ public class User {
     @Size(min = 8, max=255)
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "{tddredditbackend.constraints.password.Pattern.message}")
     private String password;
+
+    @Override
+    @Transient
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return AuthorityUtils.createAuthorityList("Role_USER");
+    }
+
+    @Override
+    @Transient
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    @Transient
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    @Transient
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    @Transient
+    public boolean isEnabled() {
+        return true;
+    }
 
 }
