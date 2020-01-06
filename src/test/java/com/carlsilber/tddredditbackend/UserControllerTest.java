@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -239,8 +241,31 @@ public class UserControllerTest {
         assertThat(validationErrors.get("username")).isEqualTo("This name is in use");
     }
 
+    @Test
+    public void getUsers_whenThereAreNoUsersInDB_receiveOK() {
+        ResponseEntity<Object> response = getUsers(new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getUsers_whenThereAreNoUsersInDB_receivePageWithZeroItems() {
+        ResponseEntity<TestPage<Object>> response = getUsers(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void getUsers_whenThereIsAUserInDB_receivePageWithUser() {
+        userRepository.save(TestUtil.createValidUser());
+        ResponseEntity<TestPage<Object>> response = getUsers(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getNumberOfElements()).isEqualTo(1);
+    }
+
+
     public <T> ResponseEntity<T> postSignup(Object request, Class<T> response){
         return testRestTemplate.postForEntity(API_1_0_USERS, request, response);
     }
 
+    public <T> ResponseEntity<T> getUsers(ParameterizedTypeReference<T> responseType){
+        return testRestTemplate.exchange(API_1_0_USERS, HttpMethod.GET, null, responseType);
+    }
 }
