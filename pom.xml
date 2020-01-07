@@ -30,8 +30,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </d
-                +ependency>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
