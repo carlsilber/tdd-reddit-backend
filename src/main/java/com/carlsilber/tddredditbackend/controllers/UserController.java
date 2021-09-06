@@ -4,6 +4,7 @@ import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.domain.UserVM;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.services.UserService;
+import com.carlsilber.tddredditbackend.shared.CurrentUser;
 import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,8 +35,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    Page<UserVM> getUsers(Pageable page) {
-        return userService.getUsers(page).map(UserVM::new);
+    Page<UserVM> getUsers(@CurrentUser User loggedInUser, Pageable page) {
+        return userService.getUsers(loggedInUser, page).map(UserVM::new);
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
