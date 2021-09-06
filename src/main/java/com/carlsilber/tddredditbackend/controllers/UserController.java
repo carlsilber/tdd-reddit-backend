@@ -7,6 +7,7 @@ import com.carlsilber.tddredditbackend.services.UserService;
 import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -33,8 +34,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    Page<UserVM> getUsers() {
-        return userService.getUsers().map(UserVM::new);
+    Page<UserVM> getUsers(Pageable page) {
+        return userService.getUsers(page).map(UserVM::new);
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
