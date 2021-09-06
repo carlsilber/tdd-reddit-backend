@@ -1,11 +1,10 @@
 package com.carlsilber.tddredditbackend.controllers;
 
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.domain.UserVM;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.services.UserService;
 import com.carlsilber.tddredditbackend.shared.GenericResponse;
-import com.carlsilber.tddredditbackend.views.Views;
-import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -34,9 +33,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    @JsonView(Views.Base.class)
-    Page<?> getUsers() {
-        return userService.getUsers();
+    Page<UserVM> getUsers() {
+        return userService.getUsers().map(UserVM::new);
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})

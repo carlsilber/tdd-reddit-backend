@@ -1,8 +1,6 @@
 package com.carlsilber.tddredditbackend.domain;
 
 import com.carlsilber.tddredditbackend.validators.UniqueUsername;
-import com.carlsilber.tddredditbackend.views.Views;
-import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -25,18 +23,15 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue
-    @JsonView(Views.Base.class)
     private long id;
 
     @NotNull(message = "{tddredditbackend.constraints.username.NotNull.message}")
     @Size(min = 4, max=255)
     @UniqueUsername
-    @JsonView(Views.Base.class)
     private String username;
 
     @NotNull
     @Size(min = 4, max=255)
-    @JsonView(Views.Base.class)
     private String displayName;
 
     @NotNull
@@ -44,7 +39,6 @@ public class User implements UserDetails {
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "{tddredditbackend.constraints.password.Pattern.message}")
     private String password;
 
-    @JsonView(Views.Base.class)
     private String image;
 
     @Override
