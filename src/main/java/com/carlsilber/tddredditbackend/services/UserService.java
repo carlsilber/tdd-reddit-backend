@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend.services;
 
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.error.NotFoundException;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +31,13 @@ public class UserService {
         }
         return userRepository.findAll(pageable);
     }
+
+    public User getByUsername(String username) {
+        User inDB = userRepository.findByUsername(username);
+        if(inDB == null) {
+            throw new NotFoundException(username + " not found");
+        }
+        return inDB;
+    }
+
 }
