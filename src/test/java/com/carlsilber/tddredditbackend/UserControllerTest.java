@@ -1,6 +1,8 @@
 package com.carlsilber.tddredditbackend;
 
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.domain.UserUpdateVM;
+import com.carlsilber.tddredditbackend.domain.UserVM;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import com.carlsilber.tddredditbackend.services.UserService;
@@ -378,6 +380,49 @@ public class UserControllerTest {
         ResponseEntity<ApiError> response = putUser(anotherUserId, null, ApiError.class);
         assertThat(response.getBody().getUrl()).contains("users/"+anotherUserId);
     }
+
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveOk() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateVM updatedUser = createValidUserUpdateVM();
+
+        HttpEntity<UserUpdateVM> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<Object> response = putUser(user.getId(), requestEntity, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_displayNameUpdated() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateVM updatedUser = createValidUserUpdateVM();
+
+        HttpEntity<UserUpdateVM> requestEntity = new HttpEntity<>(updatedUser);
+        putUser(user.getId(), requestEntity, Object.class);
+
+        User userInDB = userRepository.findByUsername("user1");
+        assertThat(userInDB.getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+    }
+
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveUserVMWithUpdatedDisplayName() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateVM updatedUser = createValidUserUpdateVM();
+
+        HttpEntity<UserUpdateVM> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserVM> response = putUser(user.getId(), requestEntity, UserVM.class);
+
+        assertThat(response.getBody().getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+    }
+
+    private UserUpdateVM createValidUserUpdateVM() {
+        UserUpdateVM updatedUser = new UserUpdateVM();
+        updatedUser.setDisplayName("newDisplayName");
+        return updatedUser;
+    }
+
 
     private void authenticate(String username) {
         testRestTemplate.getRestTemplate()

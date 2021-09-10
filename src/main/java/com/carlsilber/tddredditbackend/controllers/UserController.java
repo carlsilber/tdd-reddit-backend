@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend.controllers;
 
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.domain.UserUpdateVM;
 import com.carlsilber.tddredditbackend.domain.UserVM;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.services.UserService;
@@ -47,8 +48,9 @@ public class UserController {
     }
     @PutMapping("/users/{id:[0-9]+}")
     @PreAuthorize("#id == principal.id")
-    void updateUser(@PathVariable long id) {
-
+    UserVM updateUser(@PathVariable long id, @RequestBody(required = false) UserUpdateVM userUpdate) {
+        User updated = userService.update(id, userUpdate);
+        return new UserVM(updated);
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})

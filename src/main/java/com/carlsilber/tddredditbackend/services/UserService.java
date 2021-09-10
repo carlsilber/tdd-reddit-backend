@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend.services;
 
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.domain.UserUpdateVM;
 import com.carlsilber.tddredditbackend.error.NotFoundException;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,12 @@ public class UserService {
             throw new NotFoundException(username + " not found");
         }
         return inDB;
+    }
+
+    public User update(long id, UserUpdateVM userUpdate) {
+        User inDB = userRepository.getOne(id);
+        inDB.setDisplayName(userUpdate.getDisplayName());
+        return userRepository.save(inDB);
     }
 
 }
