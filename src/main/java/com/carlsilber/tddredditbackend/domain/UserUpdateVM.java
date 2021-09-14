@@ -7,4 +7,6 @@ public class UserUpdateVM {
 
     private String displayName;
 
+    private String image;
+
 }
