@@ -3,13 +3,14 @@ package com.carlsilber.tddredditbackend.services;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.domain.UserUpdateVM;
 import com.carlsilber.tddredditbackend.error.NotFoundException;
+import com.carlsilber.tddredditbackend.file.FileService;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.io.IOException;
 
 @Service
 public class UserService {
@@ -18,9 +19,13 @@ public class UserService {
 
     PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    FileService fileService;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, FileService fileService) {
+        super();
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.fileService = fileService;
     }
 
     public User save(User user) {
@@ -46,8 +51,15 @@ public class UserService {
     public User update(long id, UserUpdateVM userUpdate) {
         User inDB = userRepository.getOne(id);
         inDB.setDisplayName(userUpdate.getDisplayName());
-        String savedImageName = inDB.getUsername() + UUID.randomUUID().toString().replaceAll("-", "");
-        inDB.setImage(savedImageName);
+        if(userUpdate.getImage() != null) {
+            String savedImageName;
+            try {
+                savedImageName = fileService.saveProfileImage(userUpdate.getImage());
+                inDB.setImage(savedImageName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return userRepository.save(inDB);
     }
 
