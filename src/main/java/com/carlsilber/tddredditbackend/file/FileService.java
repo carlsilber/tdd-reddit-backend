@@ -2,6 +2,7 @@ package com.carlsilber.tddredditbackend.file;
 
 import com.carlsilber.tddredditbackend.configuration.AppConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,9 +15,12 @@ public class FileService {
 
     AppConfiguration appConfiguration;
 
+    Tika tika;
+
     public FileService(AppConfiguration appConfiguration) {
         super();
         this.appConfiguration = appConfiguration;
+        tika = new Tika();
     }
 
     public String saveProfileImage(String base64Image) throws IOException {
@@ -26,6 +30,10 @@ public class FileService {
         File target = new File(appConfiguration.getFullProfileImagesPath() + "/" + imageName);
         FileUtils.writeByteArrayToFile(target, decodedBytes);
         return imageName;
+    }
+
+    public String detectType(byte[] fileArr) {
+        return tika.detect(fileArr);
     }
 
 }
