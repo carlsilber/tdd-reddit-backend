@@ -1,4 +1,4 @@
-package com.carlsilber.tddredditbackend.shared;
+package com.carlsilber.tddredditbackend.validators;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

@@ -1,6 +1,7 @@
-package com.carlsilber.tddredditbackend.shared;
+package com.carlsilber.tddredditbackend.validators;
 
 import com.carlsilber.tddredditbackend.file.FileService;
+import com.carlsilber.tddredditbackend.validators.ProfileImage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.ConstraintValidator;

@@ -1,6 +1,6 @@
 package com.carlsilber.tddredditbackend.domain;
 
-import com.carlsilber.tddredditbackend.shared.ProfileImage;
+import com.carlsilber.tddredditbackend.validators.ProfileImage;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
