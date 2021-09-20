@@ -2,6 +2,7 @@ package com.carlsilber.tddredditbackend;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
 import com.carlsilber.tddredditbackend.error.ApiError;
+import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import com.carlsilber.tddredditbackend.services.UserService;
 import org.junit.Before;
@@ -34,8 +35,12 @@ public class TopicControllerTest {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    TopicRepository topicRepository;
+
     @Before
     public void cleanup() {
+        topicRepository.deleteAll();
         userRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
     }
@@ -62,6 +67,29 @@ public class TopicControllerTest {
         Topic topic = TestUtil.createValidTopic();
         ResponseEntity<ApiError> response = postTopic(topic, ApiError.class);
         assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+
+
+    @Test
+    public void postTopic_whenTopicIsValidAndUserIsAuthorized_topicSavedToDatabase() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = TestUtil.createValidTopic();
+        postTopic(topic, Object.class);
+
+        assertThat(topicRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    public void postTopic_whenTopicIsValidAndUserIsAuthorized_topicSavedToDatabaseWithTimestamp() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = TestUtil.createValidTopic();
+        postTopic(topic, Object.class);
+
+        Topic inDB = topicRepository.findAll().get(0);
+
+        assertThat(inDB.getTimestamp()).isNotNull();
     }
 
     private <T> ResponseEntity<T> postTopic(Topic topic, Class<T> responseType) {
