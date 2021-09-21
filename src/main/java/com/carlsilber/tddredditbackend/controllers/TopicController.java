@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/1.0")
 public class TopicController {
@@ -16,7 +18,7 @@ public class TopicController {
     TopicService topicService;
 
     @PostMapping("/topics")
-    void createTopic(@RequestBody Topic topic) {
+    void createTopic(@Valid @RequestBody Topic topic) {
         topicService.save(topic);
     }
 

@@ -17,6 +17,10 @@ import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -90,6 +94,58 @@ public class TopicControllerTest {
         Topic inDB = topicRepository.findAll().get(0);
 
         assertThat(inDB.getTimestamp()).isNotNull();
+    }
+
+    @Test
+    public void postTopic_whenTopicContentNullAndUserIsAuthorized_receiveBadRequest() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = new Topic();
+        ResponseEntity<Object> response = postTopic(topic, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void postTopic_whenTopicContentLessThan10CharactersAndUserIsAuthorized_receiveBadRequest() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = new Topic();
+        topic.setContent("123456789");
+        ResponseEntity<Object> response = postTopic(topic, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void postTopic_whenTopicContentIs5000CharactersAndUserIsAuthorized_receiveOk() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = new Topic();
+        String veryLongString = IntStream.rangeClosed(1, 5000).mapToObj(i -> "x").collect(Collectors.joining());
+        topic.setContent(veryLongString);
+        ResponseEntity<Object> response = postTopic(topic, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void postTopic_whenTopicContentMoreThan5000CharactersAndUserIsAuthorized_receiveBadRequest() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = new Topic();
+        String veryLongString = IntStream.rangeClosed(1, 5001).mapToObj(i -> "x").collect(Collectors.joining());
+        topic.setContent(veryLongString);
+        ResponseEntity<Object> response = postTopic(topic, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+
+    @Test
+    public void postTopic_whenTopicContentNullAndUserIsAuthorized_receiveApiErrorWithValidationErrors() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = new Topic();
+        ResponseEntity<ApiError> response = postTopic(topic, ApiError.class);
+        Map<String, String> validationErrors = response.getBody().getValidationErrors();
+        assertThat(validationErrors.get("content")).isNotNull();
     }
 
     private <T> ResponseEntity<T> postTopic(Topic topic, Class<T> responseType) {
