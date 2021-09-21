@@ -22,4 +22,7 @@ public class Topic {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date timestamp;
+
+    @ManyToOne
+    private User user;
 }

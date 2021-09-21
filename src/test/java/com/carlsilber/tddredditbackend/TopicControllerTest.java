@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
+import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
@@ -146,6 +147,30 @@ public class TopicControllerTest {
         ResponseEntity<ApiError> response = postTopic(topic, ApiError.class);
         Map<String, String> validationErrors = response.getBody().getValidationErrors();
         assertThat(validationErrors.get("content")).isNotNull();
+    }
+
+    @Test
+    public void postTopic_whenTopicIsValidAndUserIsAuthorized_topicSavedWithAuthenticatedUserInfo() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = TestUtil.createValidTopic();
+        postTopic(topic, Object.class);
+
+        Topic inDB = topicRepository.findAll().get(0);
+
+        assertThat(inDB.getUser().getUsername()).isEqualTo("user1");
+    }
+
+    @Test
+    public void postTopic_whenTopicIsValidAndUserIsAuthorized_topicCanBeAccessedFromUserEntity() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = TestUtil.createValidTopic();
+        postTopic(topic, Object.class);
+
+        User inDBUser = userRepository.findByUsername("user1");
+        assertThat(inDBUser.getTopics().size()).isEqualTo(1);
+
     }
 
     private <T> ResponseEntity<T> postTopic(Topic topic, Class<T> responseType) {

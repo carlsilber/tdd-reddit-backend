@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend.services;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
+import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,9 @@ public class TopicService {
         this.topicRepository = topicRepository;
     }
 
-    public void save(Topic topic) {
+    public void save(User user, Topic topic) {
         topic.setTimestamp(new Date());
+        topic.setUser(user);
         topicRepository.save(topic);
     }
 

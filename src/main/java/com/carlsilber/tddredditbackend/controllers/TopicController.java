@@ -1,7 +1,9 @@
 package com.carlsilber.tddredditbackend.controllers;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
+import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.services.TopicService;
+import com.carlsilber.tddredditbackend.shared.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,8 +20,8 @@ public class TopicController {
     TopicService topicService;
 
     @PostMapping("/topics")
-    void createTopic(@Valid @RequestBody Topic topic) {
-        topicService.save(topic);
+    void createTopic(@Valid @RequestBody Topic topic, @CurrentUser User user) {
+        topicService.save(user, topic);
     }
 
 }
