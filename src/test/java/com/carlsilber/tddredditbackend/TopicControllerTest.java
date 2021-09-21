@@ -18,6 +18,9 @@ import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -42,6 +45,9 @@ public class TopicControllerTest {
 
     @Autowired
     TopicRepository topicRepository;
+
+    @PersistenceUnit
+    private EntityManagerFactory entityManagerFactory;
 
     @Before
     public void cleanup() {
@@ -163,12 +169,14 @@ public class TopicControllerTest {
 
     @Test
     public void postTopic_whenTopicIsValidAndUserIsAuthorized_topicCanBeAccessedFromUserEntity() {
-        userService.save(TestUtil.createValidUser("user1"));
+        User user = userService.save(TestUtil.createValidUser("user1"));
         authenticate("user1");
         Topic topic = TestUtil.createValidTopic();
         postTopic(topic, Object.class);
 
-        User inDBUser = userRepository.findByUsername("user1");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        User inDBUser = entityManager.find(User.class, user.getId());
         assertThat(inDBUser.getTopics().size()).isEqualTo(1);
 
     }
