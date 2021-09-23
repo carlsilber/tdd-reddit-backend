@@ -19,10 +19,10 @@ public class TopicService {
         this.topicRepository = topicRepository;
     }
 
-    public void save(User user, Topic topic) {
+    public Topic save(User user, Topic topic) {
         topic.setTimestamp(new Date());
         topic.setUser(user);
-        topicRepository.save(topic);
+        return topicRepository.save(topic);
     }
 
     public Page<Topic> getAllTopics(Pageable pageable) {

@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
+import com.carlsilber.tddredditbackend.domain.TopicVM;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
@@ -188,6 +189,15 @@ public class TopicControllerTest {
     }
 
     @Test
+    public void postTopic_whenTopicIsValidAndUserIsAuthorized_receiveTopicVM() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = TestUtil.createValidTopic();
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+        assertThat(response.getBody().getUser().getUsername()).isEqualTo("user1");
+    }
+
+    @Test
     public void getTopics_whenThereAreNoTopics_receiveOk() {
         ResponseEntity<Object> response = getTopics(new ParameterizedTypeReference<Object>() {});
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -208,6 +218,16 @@ public class TopicControllerTest {
 
         ResponseEntity<TestPage<Object>> response = getTopics(new ParameterizedTypeReference<TestPage<Object>>() {});
         assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void getTopics_whenThereAreTopics_receivePageWithTopicVM() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<TopicVM>> response = getTopics(new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        TopicVM storedTopic = response.getBody().getContent().get(0);
+        assertThat(storedTopic.getUser().getUsername()).isEqualTo("user1");
     }
 
     public <T> ResponseEntity<T> getTopics(ParameterizedTypeReference<T> responseType){

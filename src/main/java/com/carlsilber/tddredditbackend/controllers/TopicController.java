@@ -1,6 +1,7 @@
 package com.carlsilber.tddredditbackend.controllers;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
+import com.carlsilber.tddredditbackend.domain.TopicVM;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.shared.CurrentUser;
@@ -19,13 +20,13 @@ public class TopicController {
     TopicService topicService;
 
     @PostMapping("/topics")
-    void createTopic(@Valid @RequestBody Topic topic, @CurrentUser User user) {
-        topicService.save(user, topic);
+    TopicVM createTopic(@Valid @RequestBody Topic topic, @CurrentUser User user) {
+        return new TopicVM(topicService.save(user, topic));
     }
 
     @GetMapping("/topics")
-    Page<?> getAllTopics(Pageable pageable) {
-        return topicService.getAllTopics(pageable);
+    Page<TopicVM> getAllTopics(Pageable pageable) {
+        return topicService.getAllTopics(pageable).map(TopicVM::new);
     }
 
 }
