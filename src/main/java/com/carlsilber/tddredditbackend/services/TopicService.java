@@ -14,9 +14,12 @@ public class TopicService {
 
     TopicRepository topicRepository;
 
-    public TopicService(TopicRepository topicRepository) {
+    UserService userService;
+
+    public TopicService(TopicRepository topicRepository, UserService userService) {
         super();
         this.topicRepository = topicRepository;
+        this.userService = userService;
     }
 
     public Topic save(User user, Topic topic) {
@@ -29,5 +32,9 @@ public class TopicService {
         return topicRepository.findAll(pageable);
     }
 
+    public Page<Topic> getTopicsOfUser(String username, Pageable pageable) {
+        User inDB = userService.getByUsername(username);
+        return topicRepository.findByUser(inDB, pageable);
+    }
 
 }

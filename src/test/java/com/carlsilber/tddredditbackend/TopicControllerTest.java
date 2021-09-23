@@ -230,6 +230,68 @@ public class TopicControllerTest {
         assertThat(storedTopic.getUser().getUsername()).isEqualTo("user1");
     }
 
+    @Test
+    public void getTopicsOfUser_whenUserExists_receiveOk() {
+        userService.save(TestUtil.createValidUser("user1"));
+        ResponseEntity<Object> response = getTopicsOfUser("user1", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getTopicsOfUser_whenUserDoesNotExist_receiveNotFound() {
+        ResponseEntity<Object> response = getTopicsOfUser("unknown-user", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+    @Test
+    public void getTopicsOfUser_whenUserExists_receivePageWithZeroTopics() {
+        userService.save(TestUtil.createValidUser("user1"));
+        ResponseEntity<TestPage<Object>> response = getTopicsOfUser("user1", new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void getTopicsOfUser_whenUserExistWithTopic_receivePageWithTopicVM() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<TopicVM>> response = getTopicsOfUser("user1", new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        TopicVM storedTopic = response.getBody().getContent().get(0);
+        assertThat(storedTopic.getUser().getUsername()).isEqualTo("user1");
+    }
+
+    @Test
+    public void getTopicsOfUser_whenUserExistWithMultipleTopics_receivePageWithMatchingTopicsCount() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<TopicVM>> response = getTopicsOfUser("user1", new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void getTopicsOfUser_whenMultipleUserExistWithMultipleTopics_receivePageWithMatchingTopicsCount() {
+        User userWithThreeTopics = userService.save(TestUtil.createValidUser("user1"));
+        IntStream.rangeClosed(1, 3).forEach(i -> {
+            topicService.save(userWithThreeTopics, TestUtil.createValidTopic());
+        });
+
+        User userWithFiveTopics = userService.save(TestUtil.createValidUser("user2"));
+        IntStream.rangeClosed(1, 5).forEach(i -> {
+            topicService.save(userWithFiveTopics, TestUtil.createValidTopic());
+        });
+
+        ResponseEntity<TestPage<TopicVM>> response = getTopicsOfUser(userWithFiveTopics.getUsername(), new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(5);
+    }
+
+
+    public <T> ResponseEntity<T> getTopicsOfUser(String username, ParameterizedTypeReference<T> responseType){
+        String path = "/api/1.0/users/" + username + "/topics";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
     public <T> ResponseEntity<T> getTopics(ParameterizedTypeReference<T> responseType){
         return testRestTemplate.exchange(API_1_0_TOPICS, HttpMethod.GET, null, responseType);
     }

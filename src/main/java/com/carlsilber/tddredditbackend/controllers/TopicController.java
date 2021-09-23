@@ -29,4 +29,9 @@ public class TopicController {
         return topicService.getAllTopics(pageable).map(TopicVM::new);
     }
 
+    @GetMapping("/users/{username}/topics")
+    Page<TopicVM> getTopicsOfUser(@PathVariable String username, Pageable pageable){
+        return topicService.getTopicsOfUser(username, pageable).map(TopicVM::new);
+    }
+
 }
