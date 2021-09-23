@@ -3,6 +3,8 @@ package com.carlsilber.tddredditbackend.services;
 import com.carlsilber.tddredditbackend.domain.Topic;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,5 +24,10 @@ public class TopicService {
         topic.setUser(user);
         topicRepository.save(topic);
     }
+
+    public Page<Topic> getAllTopics(Pageable pageable) {
+        return topicRepository.findAll(pageable);
+    }
+
 
 }

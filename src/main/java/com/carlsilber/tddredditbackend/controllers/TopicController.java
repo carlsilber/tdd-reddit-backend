@@ -5,10 +5,9 @@ import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.shared.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -22,6 +21,11 @@ public class TopicController {
     @PostMapping("/topics")
     void createTopic(@Valid @RequestBody Topic topic, @CurrentUser User user) {
         topicService.save(user, topic);
+    }
+
+    @GetMapping("/topics")
+    Page<?> getAllTopics(Pageable pageable) {
+        return topicService.getAllTopics(pageable);
     }
 
 }

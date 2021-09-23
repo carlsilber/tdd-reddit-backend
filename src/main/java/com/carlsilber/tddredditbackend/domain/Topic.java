@@ -1,5 +1,6 @@
 package com.carlsilber.tddredditbackend.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -24,5 +25,6 @@ public class Topic {
     private Date timestamp;
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 }

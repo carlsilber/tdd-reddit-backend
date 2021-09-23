@@ -5,6 +5,7 @@ import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.error.ApiError;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
+import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.services.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
@@ -45,6 +48,9 @@ public class TopicControllerTest {
 
     @Autowired
     TopicRepository topicRepository;
+
+    @Autowired
+    TopicService topicService;
 
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
@@ -180,6 +186,34 @@ public class TopicControllerTest {
         assertThat(inDBUser.getTopics().size()).isEqualTo(1);
 
     }
+
+    @Test
+    public void getTopics_whenThereAreNoTopics_receiveOk() {
+        ResponseEntity<Object> response = getTopics(new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getTopics_whenThereAreNoTopics_receivePageWithZeroItems() {
+        ResponseEntity<TestPage<Object>> response = getTopics(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void getTopics_whenThereAreTopics_receivePageWithItems() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<Object>> response = getTopics(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+
+    public <T> ResponseEntity<T> getTopics(ParameterizedTypeReference<T> responseType){
+        return testRestTemplate.exchange(API_1_0_TOPICS, HttpMethod.GET, null, responseType);
+    }
+
 
     private <T> ResponseEntity<T> postTopic(Topic topic, Class<T> responseType) {
         return testRestTemplate.postForEntity(API_1_0_TOPICS, topic, responseType);
