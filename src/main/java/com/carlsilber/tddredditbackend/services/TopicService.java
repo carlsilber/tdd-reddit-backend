@@ -41,4 +41,9 @@ public class TopicService {
         return topicRepository.findByIdLessThan(id, pageable);
     }
 
+    public Page<Topic> getOldTopicsOfUser(long id, String username, Pageable pageable) {
+        User inDB = userService.getByUsername(username);
+        return topicRepository.findByIdLessThanAndUser(id, inDB, pageable);
+    }
+
 }

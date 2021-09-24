@@ -318,8 +318,66 @@ public class TopicControllerTest {
         assertThat(response.getBody().getContent().get(0).getDate()).isGreaterThan(0);
     }
 
+    @Test
+    public void getOldTopicsOfUser_whenUserExistThereAreNoTopics_receiveOk() {
+        userService.save(TestUtil.createValidUser("user1"));
+        ResponseEntity<Object> response = getOldTopicsOfUser(5, "user1", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    public void getOldTopicsOfUser_whenUserExistAndThereAreTopics_receivePageWithItemsProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<Object>> response = getOldTopicsOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void getOldTopicsOfUser_whenUserExistAndThereAreTopics_receivePageWithTopicVMBeforeProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<TestPage<TopicVM>> response = getOldTopicsOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        assertThat(response.getBody().getContent().get(0).getDate()).isGreaterThan(0);
+    }
+
+    @Test
+    public void getOldTopicsOfUser_whenUserDoesNotExistThereAreNoTopics_receiveNotFound() {
+        ResponseEntity<Object> response = getOldTopicsOfUser(5, "user1", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void getOldTopicsOfUser_whenUserExistAndThereAreNoTopics_receivePageWithZeroItemsBeforeProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        userService.save(TestUtil.createValidUser("user2"));
+
+        ResponseEntity<TestPage<TopicVM>> response = getOldTopicsOfUser(fourth.getId(), "user2", new ParameterizedTypeReference<TestPage<TopicVM>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
     public <T> ResponseEntity<T> getOldTopics(long topicId, ParameterizedTypeReference<T> responseType){
         String path = API_1_0_TOPICS + "/" + topicId +"?direction=before&page=0&size=5&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
+    public <T> ResponseEntity<T> getOldTopicsOfUser(long topicId, String username, ParameterizedTypeReference<T> responseType){
+        String path = "/api/1.0/users/" + username + "/topics/" + topicId +"?direction=before&page=0&size=5&sort=id,desc";
         return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
     }
 

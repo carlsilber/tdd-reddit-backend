@@ -10,4 +10,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     Page<Topic> findByUser(User user, Pageable pageable);
 
     Page<Topic> findByIdLessThan(long id, Pageable pageable);
+
+    Page<Topic> findByIdLessThanAndUser(long id, User user, Pageable pageable);
+
 }
