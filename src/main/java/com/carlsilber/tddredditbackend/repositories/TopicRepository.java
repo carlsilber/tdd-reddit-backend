@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TopicRepository extends JpaRepository<Topic, Long> {
     Page<Topic> findByUser(User user, Pageable pageable);
+
+    Page<Topic> findByIdLessThan(long id, Pageable pageable);
 }

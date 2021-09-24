@@ -37,4 +37,8 @@ public class TopicService {
         return topicRepository.findByUser(inDB, pageable);
     }
 
+    public Page<Topic> getOldTopics(long id, Pageable pageable) {
+        return topicRepository.findByIdLessThan(id, pageable);
+    }
+
 }

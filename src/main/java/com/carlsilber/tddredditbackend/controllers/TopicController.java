@@ -34,4 +34,9 @@ public class TopicController {
         return topicService.getTopicsOfUser(username, pageable).map(TopicVM::new);
     }
 
+    @GetMapping("/topics/{id:[0-9]+}")
+    Page<?> getTopicsRelative(@PathVariable long id, Pageable pageable) {
+        return topicService.getOldTopics(id, pageable).map(TopicVM::new);
+    }
+
 }
