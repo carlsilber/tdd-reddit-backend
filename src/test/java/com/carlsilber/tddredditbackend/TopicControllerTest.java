@@ -25,6 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -293,7 +294,7 @@ public class TopicControllerTest {
     }
 
     @Test
-    public void getOldTopics_whenThereAreTopics_receivePageWithItemsProvidedId() {
+    public void getOldTopics_whenThereAreTopics_receivePageWithItemsBeforeProvidedId() {
         User user = userService.save(TestUtil.createValidUser("user1"));
         topicService.save(user, TestUtil.createValidTopic());
         topicService.save(user, TestUtil.createValidTopic());
@@ -369,6 +370,37 @@ public class TopicControllerTest {
 
         ResponseEntity<TestPage<TopicVM>> response = getOldTopicsOfUser(fourth.getId(), "user2", new ParameterizedTypeReference<TestPage<TopicVM>>() {});
         assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void getNewTopics_whenThereAreTopics_receiveListOfItemsAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<List<Object>> response = getNewTopics(fourth.getId(), new ParameterizedTypeReference<List<Object>>() {});
+        assertThat(response.getBody().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void getNewTopics_whenThereAreTopics_receiveListOfTopicVMAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<List<TopicVM>> response = getNewTopics(fourth.getId(), new ParameterizedTypeReference<List<TopicVM>>() {});
+        assertThat(response.getBody().get(0).getDate()).isGreaterThan(0);
+    }
+
+    public <T> ResponseEntity<T> getNewTopics(long topicId, ParameterizedTypeReference<T> responseType){
+        String path = API_1_0_TOPICS + "/" + topicId +"?direction=after&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
     }
 
     public <T> ResponseEntity<T> getOldTopics(long topicId, ParameterizedTypeReference<T> responseType){

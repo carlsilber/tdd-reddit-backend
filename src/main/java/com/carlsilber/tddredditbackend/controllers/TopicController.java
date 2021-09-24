@@ -8,9 +8,12 @@ import com.carlsilber.tddredditbackend.shared.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/1.0")
@@ -35,8 +38,13 @@ public class TopicController {
     }
 
     @GetMapping("/topics/{id:[0-9]+}")
-    Page<?> getTopicsRelative(@PathVariable long id, Pageable pageable) {
-        return topicService.getOldTopics(id, pageable).map(TopicVM::new);
+    ResponseEntity<?> getTopicsRelative(@PathVariable long id, Pageable pageable, @RequestParam(name="direction", defaultValue="after") String direction) {
+        if(!direction.equalsIgnoreCase("after")) {
+            return ResponseEntity.ok(topicService.getOldTopics(id, pageable).map(TopicVM::new));
+        }
+        List<TopicVM> newTopics = topicService.getNewTopics(id, pageable).stream()
+                .map(TopicVM::new).collect(Collectors.toList());
+        return ResponseEntity.ok(newTopics);
     }
 
     @GetMapping("/users/{username}/topics/{id:[0-9]+}")

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class TopicService {
@@ -44,6 +45,10 @@ public class TopicService {
     public Page<Topic> getOldTopicsOfUser(long id, String username, Pageable pageable) {
         User inDB = userService.getByUsername(username);
         return topicRepository.findByIdLessThanAndUser(id, inDB, pageable);
+    }
+
+    public List<Topic> getNewTopics(long id, Pageable pageable) {
+        return topicRepository.findByIdGreaterThan(id, pageable.getSort());
     }
 
 }
