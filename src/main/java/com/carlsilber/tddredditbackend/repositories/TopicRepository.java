@@ -18,4 +18,6 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
 
     Page<Topic> findByIdLessThanAndUser(long id, User user, Pageable pageable);
 
+    List<Topic> findByIdGreaterThanAndUser(long id, User user, Sort sort);
+
 }

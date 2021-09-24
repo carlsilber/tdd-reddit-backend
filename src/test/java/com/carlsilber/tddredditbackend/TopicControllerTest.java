@@ -326,7 +326,7 @@ public class TopicControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
     @Test
-    public void getOldTopicsOfUser_whenUserExistAndThereAreTopics_receivePageWithItemsProvidedId() {
+    public void getOldTopicsOfUser_whenUserExistAndThereAreTopics_receivePageWithItemsBeforeProvidedId() {
         User user = userService.save(TestUtil.createValidUser("user1"));
         topicService.save(user, TestUtil.createValidTopic());
         topicService.save(user, TestUtil.createValidTopic());
@@ -398,8 +398,68 @@ public class TopicControllerTest {
         assertThat(response.getBody().get(0).getDate()).isGreaterThan(0);
     }
 
+    @Test
+    public void getNewTopicsOfUser_whenUserExistThereAreNoTopics_receiveOk() {
+        userService.save(TestUtil.createValidUser("user1"));
+        ResponseEntity<Object> response = getNewTopicsOfUser(5, "user1", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getNewTopicsOfUser_whenUserExistAndThereAreTopics_receiveListWithItemsAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<List<Object>> response = getNewTopicsOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<List<Object>>() {});
+        assertThat(response.getBody().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void getNewTopicsOfUser_whenUserExistAndThereAreTopics_receiveListWithTopicVMAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<List<TopicVM>> response = getNewTopicsOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<List<TopicVM>>() {});
+        assertThat(response.getBody().get(0).getDate()).isGreaterThan(0);
+    }
+
+
+    @Test
+    public void getNewTopicsOfUser_whenUserDoesNotExistThereAreNoTopics_receiveNotFound() {
+        ResponseEntity<Object> response = getNewTopicsOfUser(5, "user1", new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void getNewTopicsOfUser_whenUserExistAndThereAreNoTopics_receiveListWithZeroItemsAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        userService.save(TestUtil.createValidUser("user2"));
+
+        ResponseEntity<List<TopicVM>> response = getNewTopicsOfUser(fourth.getId(), "user2", new ParameterizedTypeReference<List<TopicVM>>() {});
+        assertThat(response.getBody().size()).isEqualTo(0);
+    }
+
     public <T> ResponseEntity<T> getNewTopics(long topicId, ParameterizedTypeReference<T> responseType){
         String path = API_1_0_TOPICS + "/" + topicId +"?direction=after&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
+    public <T> ResponseEntity<T> getNewTopicsOfUser(long topicId, String username, ParameterizedTypeReference<T> responseType){
+        String path = "/api/1.0/users/" + username + "/topics/" + topicId +"?direction=after&sort=id,desc";
         return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
     }
 

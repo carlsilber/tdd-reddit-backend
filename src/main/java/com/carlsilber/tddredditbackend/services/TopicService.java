@@ -51,4 +51,9 @@ public class TopicService {
         return topicRepository.findByIdGreaterThan(id, pageable.getSort());
     }
 
+    public List<Topic> getNewTopicsOfUser(long id, String username, Pageable pageable) {
+        User inDB = userService.getByUsername(username);
+        return topicRepository.findByIdGreaterThanAndUser(id, inDB, pageable.getSort());
+    }
+
 }

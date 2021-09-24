@@ -48,8 +48,14 @@ public class TopicController {
     }
 
     @GetMapping("/users/{username}/topics/{id:[0-9]+}")
-    Page<?> getTopicsRelativeForUser(@PathVariable String username, @PathVariable long id, Pageable pageable) {
-        return topicService.getOldTopicsOfUser(id, username, pageable).map(TopicVM::new);
+    ResponseEntity<?> getTopicsRelativeForUser(@PathVariable String username, @PathVariable long id, Pageable pageable,
+                                               @RequestParam(name="direction", defaultValue="after") String direction) {
+        if(!direction.equalsIgnoreCase("after")) {
+            return ResponseEntity.ok(topicService.getOldTopicsOfUser(id, username, pageable).map(TopicVM::new));
+        }
+        List<TopicVM> newTopics = topicService.getNewTopicsOfUser(id, username, pageable).stream()
+                .map(TopicVM::new).collect(Collectors.toList());
+        return ResponseEntity.ok(newTopics);
     }
 
 }
