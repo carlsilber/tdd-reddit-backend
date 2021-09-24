@@ -56,4 +56,14 @@ public class TopicService {
         return topicRepository.findByIdGreaterThanAndUser(id, inDB, pageable.getSort());
     }
 
+    public long getNewTopicsCount(long id) {
+        return topicRepository.countByIdGreaterThan(id);
+    }
+
+    public long getNewTopicsCountOfUser(long id, String username) {
+        User inDB = userService.getByUsername(username);
+        return topicRepository.countByIdGreaterThanAndUser(id, inDB);
+    }
+
+
 }

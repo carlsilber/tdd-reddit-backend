@@ -453,6 +453,44 @@ public class TopicControllerTest {
         assertThat(response.getBody().size()).isEqualTo(0);
     }
 
+    @Test
+    public void getNewTopicCount_whenThereAreTopics_receiveCountAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<Map<String, Long>> response = getNewTopicCount(fourth.getId(), new ParameterizedTypeReference<Map<String, Long>>() {});
+        assertThat(response.getBody().get("count")).isEqualTo(1);
+    }
+
+
+    @Test
+    public void getNewTopicCountOfUser_whenThereAreTopics_receiveCountAfterProvidedId() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+        Topic fourth = topicService.save(user, TestUtil.createValidTopic());
+        topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<Map<String, Long>> response = getNewTopicCountOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<Map<String, Long>>() {});
+        assertThat(response.getBody().get("count")).isEqualTo(1);
+    }
+
+
+    public <T> ResponseEntity<T> getNewTopicCount(long topicId, ParameterizedTypeReference<T> responseType){
+        String path = API_1_0_TOPICS + "/" + topicId +"?direction=after&count=true";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
+    public <T> ResponseEntity<T> getNewTopicCountOfUser(long topicId, String username, ParameterizedTypeReference<T> responseType){
+        String path = "/api/1.0/users/" + username + "/topics/" + topicId +"?direction=after&count=true";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
     public <T> ResponseEntity<T> getNewTopics(long topicId, ParameterizedTypeReference<T> responseType){
         String path = API_1_0_TOPICS + "/" + topicId +"?direction=after&sort=id,desc";
         return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
