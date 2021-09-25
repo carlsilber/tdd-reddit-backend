@@ -5,6 +5,7 @@ import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -39,27 +40,42 @@ public class TopicService {
     }
 
     public Page<Topic> getOldTopics(long id, String username, Pageable pageable) {
-        if (username == null) {
-            return topicRepository.findByIdLessThan(id, pageable);
+        Specification<Topic> spec = Specification.where(idLessThan(id));
+        if (username != null) {
+            User inDB = userService.getByUsername(username);
+            spec = spec.and(userIs(inDB));
         }
-        User inDB = userService.getByUsername(username);
-        return topicRepository.findByIdLessThanAndUser(id, inDB, pageable);
+        return topicRepository.findAll(spec, pageable);
     }
 
     public List<Topic> getNewTopics(long id, String username, Pageable pageable) {
-        if (username == null) {
-            return topicRepository.findByIdGreaterThan(id, pageable.getSort());
+        Specification<Topic> spec = Specification.where(idGreaterThan(id));
+        if (username != null) {
+            User inDB = userService.getByUsername(username);
+            spec = spec.and(userIs(inDB));
         }
-        User inDB = userService.getByUsername(username);
-        return topicRepository.findByIdGreaterThanAndUser(id, inDB, pageable.getSort());
+        return topicRepository.findAll(spec, pageable.getSort());
     }
 
     public long getNewTopicsCount(long id, String username) {
-        if (username == null) {
-        return topicRepository.countByIdGreaterThan(id);
+        Specification<Topic> spec = Specification.where(idGreaterThan(id));
+        if (username != null) {
+            User inDB = userService.getByUsername(username);
+            spec = spec.and(userIs(inDB));
         }
-        User inDB = userService.getByUsername(username);
-        return topicRepository.countByIdGreaterThanAndUser(id, inDB);
+        return topicRepository.count(spec);
+    }
+
+    private Specification<Topic> userIs(User user) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user"), user);
+    }
+
+    private Specification<Topic> idLessThan(long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("id"), id);
+    }
+
+    private Specification<Topic> idGreaterThan(long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("id"), id);
     }
 
 }
