@@ -38,37 +38,39 @@ public class TopicController {
         return topicService.getTopicsOfUser(username, pageable).map(TopicVM::new);
     }
 
-    @GetMapping("/topics/{id:[0-9]+}")
-    ResponseEntity<?> getTopicsRelative(@PathVariable long id, Pageable pageable,
+    @GetMapping({"/topics/{id:[0-9]+}", "/users/{username}/topics/{id:[0-9]+}"})
+    ResponseEntity<?> getTopicsRelative(@PathVariable long id,
+                                        @PathVariable(required = false) String username,
+                                        Pageable pageable,
                                         @RequestParam(name="direction", defaultValue="after") String direction,
                                         @RequestParam(name="count", defaultValue="false", required=false) boolean count) {
         if(!direction.equalsIgnoreCase("after")) {
-            return ResponseEntity.ok(topicService.getOldTopics(id, pageable).map(TopicVM::new));
+            return ResponseEntity.ok(topicService.getOldTopics(id, username, pageable).map(TopicVM::new));
         }
         if(count == true) {
-            long newTopicCount = topicService.getNewTopicsCount(id);
+            long newTopicCount = topicService.getNewTopicsCount(id, username);
             return ResponseEntity.ok(Collections.singletonMap("count", newTopicCount));
         }
 
-        List<TopicVM> newTopics = topicService.getNewTopics(id, pageable).stream()
+        List<TopicVM> newTopics = topicService.getNewTopics(id, username, pageable).stream()
                 .map(TopicVM::new).collect(Collectors.toList());
         return ResponseEntity.ok(newTopics);
     }
 
-    @GetMapping("/users/{username}/topics/{id:[0-9]+}")
-    ResponseEntity<?> getTopicsRelativeForUser(@PathVariable String username, @PathVariable long id, Pageable pageable,
-                                               @RequestParam(name="direction", defaultValue="after") String direction,
-                                               @RequestParam(name="count", defaultValue="false", required=false) boolean count) {
-        if(!direction.equalsIgnoreCase("after")) {
-            return ResponseEntity.ok(topicService.getOldTopicsOfUser(id, username, pageable).map(TopicVM::new));
-        }
-        if(count == true) {
-            long newTopicCount = topicService.getNewTopicsCountOfUser(id, username);
-            return ResponseEntity.ok(Collections.singletonMap("count", newTopicCount));
-        }
-        List<TopicVM> newTopics = topicService.getNewTopicsOfUser(id, username, pageable).stream()
-                .map(TopicVM::new).collect(Collectors.toList());
-        return ResponseEntity.ok(newTopics);
-    }
+//    @GetMapping("/users/{username}/topics/{id:[0-9]+}")
+//    ResponseEntity<?> getTopicsRelativeForUser(@PathVariable String username, @PathVariable long id, Pageable pageable,
+//                                               @RequestParam(name="direction", defaultValue="after") String direction,
+//                                               @RequestParam(name="count", defaultValue="false", required=false) boolean count) {
+//        if(!direction.equalsIgnoreCase("after")) {
+//            return ResponseEntity.ok(topicService.getOldTopicsOfUser(id, username, pageable).map(TopicVM::new));
+//        }
+//        if(count == true) {
+//            long newTopicCount = topicService.getNewTopicsCountOfUser(id, username);
+//            return ResponseEntity.ok(Collections.singletonMap("count", newTopicCount));
+//        }
+//        List<TopicVM> newTopics = topicService.getNewTopicsOfUser(id, username, pageable).stream()
+//                .map(TopicVM::new).collect(Collectors.toList());
+//        return ResponseEntity.ok(newTopics);
+//    }
 
 }

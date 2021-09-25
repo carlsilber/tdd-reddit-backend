@@ -38,32 +38,28 @@ public class TopicService {
         return topicRepository.findByUser(inDB, pageable);
     }
 
-    public Page<Topic> getOldTopics(long id, Pageable pageable) {
-        return topicRepository.findByIdLessThan(id, pageable);
-    }
-
-    public Page<Topic> getOldTopicsOfUser(long id, String username, Pageable pageable) {
+    public Page<Topic> getOldTopics(long id, String username, Pageable pageable) {
+        if (username == null) {
+            return topicRepository.findByIdLessThan(id, pageable);
+        }
         User inDB = userService.getByUsername(username);
         return topicRepository.findByIdLessThanAndUser(id, inDB, pageable);
     }
 
-    public List<Topic> getNewTopics(long id, Pageable pageable) {
-        return topicRepository.findByIdGreaterThan(id, pageable.getSort());
-    }
-
-    public List<Topic> getNewTopicsOfUser(long id, String username, Pageable pageable) {
+    public List<Topic> getNewTopics(long id, String username, Pageable pageable) {
+        if (username == null) {
+            return topicRepository.findByIdGreaterThan(id, pageable.getSort());
+        }
         User inDB = userService.getByUsername(username);
         return topicRepository.findByIdGreaterThanAndUser(id, inDB, pageable.getSort());
     }
 
-    public long getNewTopicsCount(long id) {
+    public long getNewTopicsCount(long id, String username) {
+        if (username == null) {
         return topicRepository.countByIdGreaterThan(id);
-    }
-
-    public long getNewTopicsCountOfUser(long id, String username) {
+        }
         User inDB = userService.getByUsername(username);
         return topicRepository.countByIdGreaterThanAndUser(id, inDB);
     }
-
 
 }
