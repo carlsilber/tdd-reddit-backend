@@ -1,7 +1,5 @@
 package com.carlsilber.tddredditbackend;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.carlsilber.tddredditbackend.configuration.AppConfiguration;
 import com.carlsilber.tddredditbackend.file.FileService;
 import org.apache.commons.io.FileUtils;
@@ -16,6 +14,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class FileServiceTest {
@@ -29,7 +29,7 @@ public class FileServiceTest {
         appConfiguration = new AppConfiguration();
         appConfiguration.setUploadPath("uploads-test");
 
-        fileService = new FileService(appConfiguration);
+        fileService = new FileService(appConfiguration, null);
 
         new File(appConfiguration.getUploadPath()).mkdir();
         new File(appConfiguration.getFullProfileImagesPath()).mkdir();
