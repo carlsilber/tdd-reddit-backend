@@ -2,6 +2,8 @@ package com.carlsilber.tddredditbackend.services;
 
 import com.carlsilber.tddredditbackend.domain.Topic;
 import com.carlsilber.tddredditbackend.domain.User;
+import com.carlsilber.tddredditbackend.file.FileAttachment;
+import com.carlsilber.tddredditbackend.file.FileAttachmentRepository;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,15 +20,23 @@ public class TopicService {
 
     UserService userService;
 
-    public TopicService(TopicRepository topicRepository, UserService userService) {
+    FileAttachmentRepository fileAttachmentRepository;
+
+    public TopicService(TopicRepository topicRepository, UserService userService, FileAttachmentRepository fileAttachmentRepository) {
         super();
         this.topicRepository = topicRepository;
         this.userService = userService;
+        this.fileAttachmentRepository = fileAttachmentRepository;
     }
 
     public Topic save(User user, Topic topic) {
         topic.setTimestamp(new Date());
         topic.setUser(user);
+        if(topic.getAttachment() != null) {
+            FileAttachment inDB = fileAttachmentRepository.findById(topic.getAttachment().getId()).get();
+            inDB.setTopic(topic);
+            topic.setAttachment(inDB);
+        }
         return topicRepository.save(topic);
     }
 

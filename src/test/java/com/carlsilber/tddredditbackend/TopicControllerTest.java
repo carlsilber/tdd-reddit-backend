@@ -1,13 +1,18 @@
 package com.carlsilber.tddredditbackend;
 
+import com.carlsilber.tddredditbackend.configuration.AppConfiguration;
 import com.carlsilber.tddredditbackend.domain.Topic;
 import com.carlsilber.tddredditbackend.domain.TopicVM;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.error.ApiError;
+import com.carlsilber.tddredditbackend.file.FileAttachment;
+import com.carlsilber.tddredditbackend.file.FileAttachmentRepository;
+import com.carlsilber.tddredditbackend.file.FileService;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.services.UserService;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,16 +20,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,14 +64,25 @@ public class TopicControllerTest {
     @Autowired
     TopicService topicService;
 
+    @Autowired
+    FileAttachmentRepository fileAttachmentRepository;
+
+    @Autowired
+    FileService fileService;
+
+    @Autowired
+    AppConfiguration appConfiguration;
+
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
 
     @Before
-    public void cleanup() {
+    public void cleanup() throws IOException {
+        fileAttachmentRepository.deleteAll();
         topicRepository.deleteAll();
         userRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
     }
 
     @Test
@@ -196,6 +217,65 @@ public class TopicControllerTest {
         Topic topic = TestUtil.createValidTopic();
         ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
         assertThat(response.getBody().getUser().getUsername()).isEqualTo("user1");
+    }
+
+
+    @Test
+    public void postTopic_whenTopicHasFileAttachmentAndUserIsAuthorized_fileAttachmentTopicRelationIsUpdatedInDatabase() throws IOException {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+
+        MultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Topic topic = TestUtil.createValidTopic();
+        topic.setAttachment(savedFile);
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+
+        FileAttachment inDB = fileAttachmentRepository.findAll().get(0);
+        assertThat(inDB.getTopic().getId()).isEqualTo(response.getBody().getId());
+    }
+
+    @Test
+    public void postTopic_whenTopicHasFileAttachmentAndUserIsAuthorized_topicFileAttachmentRelationIsUpdatedInDatabase() throws IOException {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+
+        MultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Topic topic = TestUtil.createValidTopic();
+        topic.setAttachment(savedFile);
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+
+        Topic inDB = topicRepository.findById(response.getBody().getId()).get();
+        assertThat(inDB.getAttachment().getId()).isEqualTo(savedFile.getId());
+    }
+
+    @Test
+    public void postTopic_whenTopicHasFileAttachmentAndUserIsAuthorized_receiveTopicVMWithAttachment() throws IOException {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+
+        MultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Topic topic = TestUtil.createValidTopic();
+        topic.setAttachment(savedFile);
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+
+        assertThat(response.getBody().getAttachment().getName()).isEqualTo(savedFile.getName());
+    }
+
+    private MultipartFile createFile() throws IOException {
+        ClassPathResource imageResource = new ClassPathResource("profile.png");
+        byte[] fileAsByte = FileUtils.readFileToByteArray(imageResource.getFile());
+
+        MultipartFile file = new MockMultipartFile("profile.png", fileAsByte);
+        return file;
     }
 
     @Test

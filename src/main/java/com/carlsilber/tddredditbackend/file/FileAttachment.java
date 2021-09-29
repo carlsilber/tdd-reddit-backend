@@ -1,5 +1,6 @@
 package com.carlsilber.tddredditbackend.file;
 
+import com.carlsilber.tddredditbackend.domain.Topic;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -19,5 +20,8 @@ public class FileAttachment {
     private String name;
 
     private String fileType;
+
+    @OneToOne
+    private Topic topic;
 
 }

@@ -1,5 +1,6 @@
 package com.carlsilber.tddredditbackend.domain;
 
+import com.carlsilber.tddredditbackend.file.FileAttachment;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -25,4 +26,7 @@ public class Topic {
 
     @ManyToOne
     private User user;
+
+    @OneToOne(mappedBy = "topic")
+    private FileAttachment attachment;
 }
