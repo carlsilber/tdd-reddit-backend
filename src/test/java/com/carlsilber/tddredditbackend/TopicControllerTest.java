@@ -624,6 +624,49 @@ public class TopicControllerTest {
 
     }
 
+    @Test
+    public void deleteTopic_whenTopicHasAttachment_attachmentRemovedFromDatabase() throws IOException {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+
+        MultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Topic topic= TestUtil.createValidTopic();
+        topic.setAttachment(savedFile);
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+
+        long topicId = response.getBody().getId();
+
+        deleteTopic(topicId, Object.class);
+
+        Optional<FileAttachment> optionalAttachment = fileAttachmentRepository.findById(savedFile.getId());
+
+        assertThat(optionalAttachment.isPresent()).isFalse();
+    }
+
+    @Test
+    public void deleteTopic_whenTopicHasAttachment_attachmentRemovedFromStorage() throws IOException {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+
+        MultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Topic topic = TestUtil.createValidTopic();
+        topic.setAttachment(savedFile);
+        ResponseEntity<TopicVM> response = postTopic(topic, TopicVM.class);
+
+        long topicId = response.getBody().getId();
+
+        deleteTopic(topicId, Object.class);
+        String attachmentFolderPath = appConfiguration.getFullAttachmentsPath() + "/" + savedFile.getName();
+        File storedImage = new File(attachmentFolderPath);
+        assertThat(storedImage.exists()).isFalse();
+    }
+
 
     public <T> ResponseEntity<T> deleteTopic(long topicId, Class<T> responseType){
         return testRestTemplate.exchange(API_1_0_TOPICS + "/" + topicId, HttpMethod.DELETE, null, responseType);

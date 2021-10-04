@@ -27,6 +27,6 @@ public class Topic {
     @ManyToOne
     private User user;
 
-    @OneToOne(mappedBy = "topic")
+    @OneToOne(mappedBy = "topic", orphanRemoval = true)
     private FileAttachment attachment;
 }

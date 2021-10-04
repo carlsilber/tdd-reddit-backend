@@ -4,6 +4,7 @@ import com.carlsilber.tddredditbackend.domain.Topic;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.file.FileAttachment;
 import com.carlsilber.tddredditbackend.file.FileAttachmentRepository;
+import com.carlsilber.tddredditbackend.file.FileService;
 import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +23,14 @@ public class TopicService {
 
     FileAttachmentRepository fileAttachmentRepository;
 
-    public TopicService(TopicRepository topicRepository, UserService userService, FileAttachmentRepository fileAttachmentRepository) {
+    FileService fileService;
+
+    public TopicService(TopicRepository topicRepository, UserService userService, FileAttachmentRepository fileAttachmentRepository, FileService fileService) {
         super();
         this.topicRepository = topicRepository;
         this.userService = userService;
         this.fileAttachmentRepository = fileAttachmentRepository;
+        this.fileService = fileService;
     }
 
     public Topic save(User user, Topic topic) {
@@ -89,6 +93,10 @@ public class TopicService {
     }
 
     public void deleteTopic(long id) {
+        Topic topic = topicRepository.getOne(id);
+        if (topic.getAttachment() != null) {
+            fileService.deleteAttachmentImage(topic.getAttachment().getName());
+        }
         topicRepository.deleteById(id);
     }
 
