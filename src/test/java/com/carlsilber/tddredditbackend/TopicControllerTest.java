@@ -12,6 +12,7 @@ import com.carlsilber.tddredditbackend.repositories.TopicRepository;
 import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.services.UserService;
+import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -558,6 +560,51 @@ public class TopicControllerTest {
 
         ResponseEntity<Map<String, Long>> response = getNewTopicCountOfUser(fourth.getId(), "user1", new ParameterizedTypeReference<Map<String, Long>>() {});
         assertThat(response.getBody().get("count")).isEqualTo(1);
+    }
+
+
+    @Test
+    public void deleteTopic_whenUserIsUnAuthorized_receiveUnauthorized() {
+        ResponseEntity<Object> response = deleteTopic(555, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void deleteTopic_whenUserIsAuthorized_receiveOk() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<Object> response = deleteTopic(topic.getId(), Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    }
+
+    @Test
+    public void deleteTopic_whenUserIsAuthorized_receiveGenericResponse() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = topicService.save(user, TestUtil.createValidTopic());
+
+        ResponseEntity<GenericResponse> response = deleteTopic(topic.getId(), GenericResponse.class);
+        assertThat(response.getBody().getMessage()).isNotNull();
+
+    }
+
+    @Test
+    public void deleteTopic_whenUserIsAuthorized_topicRemovedFromDatabase() {
+        User user = userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        Topic topic = topicService.save(user, TestUtil.createValidTopic());
+
+        deleteTopic(topic.getId(), Object.class);
+        Optional<Topic> inDB = topicRepository.findById(topic.getId());
+        assertThat(inDB.isPresent()).isFalse();
+
+    }
+
+    public <T> ResponseEntity<T> deleteTopic(long topicId, Class<T> responseType){
+        return testRestTemplate.exchange(API_1_0_TOPICS + "/" + topicId, HttpMethod.DELETE, null, responseType);
     }
 
 

@@ -88,4 +88,8 @@ public class TopicService {
         return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("id"), id);
     }
 
+    public void deleteTopic(long id) {
+        topicRepository.deleteById(id);
+    }
+
 }

@@ -5,6 +5,7 @@ import com.carlsilber.tddredditbackend.domain.TopicVM;
 import com.carlsilber.tddredditbackend.domain.User;
 import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.shared.CurrentUser;
+import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,6 +56,12 @@ public class TopicController {
         List<TopicVM> newTopics = topicService.getNewTopics(id, username, pageable).stream()
                 .map(TopicVM::new).collect(Collectors.toList());
         return ResponseEntity.ok(newTopics);
+    }
+
+    @DeleteMapping("/topics/{id:[0-9]+}")
+    GenericResponse deleteTopic(@PathVariable long id) {
+        topicService.deleteTopic(id);
+        return new GenericResponse("Topic is removed");
     }
 
 }
