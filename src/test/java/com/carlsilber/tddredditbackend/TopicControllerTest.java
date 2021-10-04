@@ -603,6 +603,28 @@ public class TopicControllerTest {
 
     }
 
+    @Test
+    public void deleteTopic_whenTopicIsOwnedByAnotherUser_receiveForbidden() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        User topicOwner = userService.save(TestUtil.createValidUser("topic-owner"));
+        Topic topic = topicService.save(topicOwner, TestUtil.createValidTopic());
+
+        ResponseEntity<Object> response = deleteTopic(topic.getId(), Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    }
+
+    @Test
+    public void deleteTopic_whenTopicNotExist_receiveForbidden() {
+        userService.save(TestUtil.createValidUser("user1"));
+        authenticate("user1");
+        ResponseEntity<Object> response = deleteTopic(5555, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    }
+
+
     public <T> ResponseEntity<T> deleteTopic(long topicId, Class<T> responseType){
         return testRestTemplate.exchange(API_1_0_TOPICS + "/" + topicId, HttpMethod.DELETE, null, responseType);
     }
