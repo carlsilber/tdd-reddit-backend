@@ -5,15 +5,15 @@ import com.carlsilber.tddredditbackend.file.FileAttachment;
 import com.carlsilber.tddredditbackend.file.FileAttachmentRepository;
 import com.carlsilber.tddredditbackend.file.FileService;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 public class FileServiceTest {
 
@@ -33,7 +33,7 @@ public class FileServiceTest {
     @MockBean
     FileAttachmentRepository fileAttachmentRepository;
 
-    @Before
+    @BeforeEach
     public void init() {
         appConfiguration = new AppConfiguration();
         appConfiguration.setUploadPath("uploads-test");
@@ -51,12 +51,6 @@ public class FileServiceTest {
         byte[] fileArr = FileUtils.readFileToByteArray(resourceFile.getFile());
         String fileType = fileService.detectType(fileArr);
         assertThat(fileType).isEqualToIgnoringCase("image/png");
-    }
-
-    @After
-    public void cleanup() throws IOException {
-        FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));
-        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
     }
 
     @Test
@@ -96,6 +90,13 @@ public class FileServiceTest {
 
         fileService.cleanupStorage();
         Mockito.verify(fileAttachmentRepository).deleteById(5L);
+    }
+
+
+    @AfterEach
+    public void cleanup() throws IOException {
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
     }
 
 

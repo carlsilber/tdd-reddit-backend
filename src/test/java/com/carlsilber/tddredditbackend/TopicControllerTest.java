@@ -14,9 +14,9 @@ import com.carlsilber.tddredditbackend.services.TopicService;
 import com.carlsilber.tddredditbackend.services.UserService;
 import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -28,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
@@ -44,7 +43,6 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class TopicControllerTest {
@@ -78,7 +76,7 @@ public class TopicControllerTest {
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
 
-    @Before
+    @BeforeEach
     public void cleanup() throws IOException {
         fileAttachmentRepository.deleteAll();
         topicRepository.deleteAll();
@@ -721,5 +719,11 @@ public class TopicControllerTest {
     private void authenticate(String username) {
         testRestTemplate.getRestTemplate()
                 .getInterceptors().add(new BasicAuthenticationInterceptor(username, "P4ssword"));
+    }
+
+    @AfterEach
+    public void cleanupAfter() {
+        fileAttachmentRepository.deleteAll();
+        topicRepository.deleteAll();
     }
 }

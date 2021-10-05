@@ -9,10 +9,9 @@ import com.carlsilber.tddredditbackend.repositories.UserRepository;
 import com.carlsilber.tddredditbackend.services.UserService;
 import com.carlsilber.tddredditbackend.shared.GenericResponse;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -24,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +34,6 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class UserControllerTest {
@@ -56,7 +53,7 @@ public class UserControllerTest {
     AppConfiguration appConfiguration;
 
 
-    @Before
+    @BeforeEach
     public void cleanup() {
         userRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
@@ -598,7 +595,7 @@ public class UserControllerTest {
         return testRestTemplate.exchange(path, HttpMethod.PUT, requestEntity, responseType);
     }
 
-    @After
+    @AfterEach
     public void cleanDirectory() throws IOException {
         FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));
         FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
